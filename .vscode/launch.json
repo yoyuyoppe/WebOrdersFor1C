@@ -19,27 +19,27 @@
                 "RedirectOutput"
             ]
         },
-    {
-        "name": "Flask",
-        "type": "python",
-        "request": "launch",
-        "stopOnEntry": false,
-        "pythonPath": "${config:python.pythonPath}",
-        "program": "fully qualified path fo 'flask' executable. Generally located along with python interpreter",
-        "cwd": "${workspaceFolder}",
-        "env": {
-            "FLASK_APP": "${workspaceFolder}/quickstart/app.py"
+        {
+            "name": "Flask",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "program": "${workspaceRoot}/app.py",
+            "env": {
+                "FLASK_APP": "${workspaceRoot}/app.py"
+            },
+            "args": [
+                "run",
+                "--no-debugger",
+                "--no-reload"
+            ],
+            "debugOptions": [
+                "WaitOnAbnormalExit",
+                "WaitOnNormalExit",
+                "RedirectOutput"
+            ]
         },
-        "args": [
-            "run",
-            "--no-debugger",
-            "--no-reload"
-        ],
-        "envFile": "${workspaceFolder}/.env",
-        "debugOptions": [
-            "RedirectOutput"
-        ]
-    },
         {
             "name": "Python",
             "type": "python",
