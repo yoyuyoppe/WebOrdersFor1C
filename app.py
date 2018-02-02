@@ -2,7 +2,7 @@ from flask import Flask, render_template, url_for, request, flash, redirect, ses
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
-from forms import AuthForm
+from forms import AuthForm, RegForm
 from settings.app_config import CONFIG as cfg
 from models.user import User
 
@@ -25,26 +25,48 @@ def index():
     return render_template('home.html')
 
 
-@app.route('/auth', methods=['GET', 'POST'])
-def auth():
-    import controllers.users_controller as users_controller
-    _form = AuthForm(request.form)
-    if request.method == 'POST' and _form.validate():
-        # Получаем данные с формы авторизации
-        username = str(_form.username.data)
-        # Захэшируем наши пароли. Обязательно в конфиге должен быть заполнен "SECRET_KEY"
-        #password = sha256_crypt.encrypt(str(_form.password.data))
-        password = str(_form.password.data)
+def autorization(form):
+    username = str(form.username.data)    
+    password = sha256_crypt.encrypt(str(form.password.data))
 
-        user = User(username, password)
+    user = User(username, password)
 
-        if not user.exist(g):
-            flash('Не верный пользователь или пароль', 'danger')
-            return render_template('auth.html', form=_form)
+    if not user.exist(g):
+        flash('Не верный пользователь или пароль', 'danger')
+        return render_template('login.html', isReg=False, form=form)
+
+    session['logged_in'] = True 
     
-        return redirect('/')
+    return redirect("/")
 
-    return render_template('auth.html', form=_form)
+
+def registration(form):
+    username = str(form.username.data)
+    # Захэшируем наши пароли. Обязательно в конфиге должен быть заполнен "SECRET_KEY"
+    password = sha256_crypt.encrypt(str(form.password.data))
+    email = str(form.email.data)
+    phone = str(form.phone.data)
+
+    user = User(username, password, email, phone)
+
+    try:
+        user.add(g)
+        session['logged_in'] = True
+    except Exception as e:  
+        flash("Ошибка при регистрации: %s" %e, 'danger')  
+        return render_template('login.html', isReg=True, form=form) 
+
+    return redirect("/")
+
+
+@app.route('/login/auth', methods=['GET', 'POST'], defaults={'isReg': False})
+@app.route('/login/reg', methods=['GET', 'POST'], defaults={'isReg': True})
+def login(isReg):
+    _form = RegForm(request.form) if isReg else AuthForm(request.form)
+    if request.method == 'POST':
+        return registration(_form) if isReg else autorization(_form)
+
+    return render_template('login.html', isReg=isReg, btnRegOff=not isReg, form=_form)
 
 
 if __name__ == '__main__':
