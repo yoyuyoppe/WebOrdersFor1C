@@ -1,5 +1,6 @@
 {% extends 'layout.html' %} {% block body %}
 <main role="main" class="container">
+    {% if not session.logged_in %}
     <div class="jumbotron">
         <h1>Добро пожаловать!</h1>
         <p class="lead">С помощью этого приложения вы сможете заказать нужный вам товар, посмотреть историю своих заказов, узнать последние
@@ -9,5 +10,22 @@
         <a class="btn btn-lg btn-primary" href="/login/auth" role="button">Начать работу с системой &raquo;</a>
         
     </div>
+
+    {% else %}
+
+    <h1> <small> Добро пожаловать {{session.username}}.</small></h1>
+
+    <div class="container">
+
+        <dl>
+            {% for news in listnews%}
+                <dt>{{ news.title }}</dt>
+                <dd>{{ news.content }}</dd>
+            {% endfor %}
+        </dl>
+
+    </div>>    
+
+    {% endif %}
 </main>
 {% endblock %}

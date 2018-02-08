@@ -9,7 +9,7 @@
             {{ render_field(form.phone, class_="form-control ", placeholder="+7(123)456-78-90 ", Value="") }}
         {% endif %}
         {{ render_field(form.password, class_="form-control ", placeholder="Пароль", Value="") }}
-        {% if btnRegOff %}
+        {% if not (session.logged_in and isReg) %}
         <div class="checkbox mb-3 ">
             <label>
               <a href="/login/reg "> Регистрация

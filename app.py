@@ -1,10 +1,10 @@
 from flask import Flask, render_template, url_for, request, flash, redirect, session, logging, g, Response
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
-from passlib.hash import sha256_crypt
 from forms import AuthForm, RegForm
 from settings.app_config import CONFIG as cfg
 from models.user import User
+from models.news import News, getListNews
 
 app = Flask(__name__)
 # Обновим по ключу необходимые настройки конфига
@@ -22,12 +22,18 @@ def before_request():
 
 @app.route('/')
 def index():
-    return render_template('home.html')
+    return render_template('home.html', listnews = getListNews(g))
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
 
 
 def autorization(form):
-    username = str(form.username.data)    
-    password = sha256_crypt.encrypt(str(form.password.data))
+    username = str(form.username.data)
+    password = str(form.password.data)
 
     user = User(username, password)
 
@@ -35,15 +41,16 @@ def autorization(form):
         flash('Не верный пользователь или пароль', 'danger')
         return render_template('login.html', isReg=False, form=form)
 
-    session['logged_in'] = True 
-    
+    session['logged_in'] = True
+    session['username'] = username
+
     return redirect("/")
 
 
 def registration(form):
     username = str(form.username.data)
     # Захэшируем наши пароли. Обязательно в конфиге должен быть заполнен "SECRET_KEY"
-    password = sha256_crypt.encrypt(str(form.password.data))
+    password = str(form.password.data)
     email = str(form.email.data)
     phone = str(form.phone.data)
 
@@ -52,9 +59,9 @@ def registration(form):
     try:
         user.add(g)
         session['logged_in'] = True
-    except Exception as e:  
-        flash("Ошибка при регистрации: %s" %e, 'danger')  
-        return render_template('login.html', isReg=True, form=form) 
+    except Exception as e:
+        flash("Ошибка при регистрации: %s" % e, 'danger')
+        return render_template('login.html', isReg=True, form=form)
 
     return redirect("/")
 

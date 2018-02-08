@@ -1,3 +1,5 @@
+from passlib.hash import sha256_crypt
+
 class User():
 
     def __init__(self, username, password, email="", phone=""):
@@ -14,13 +16,13 @@ class User():
 
         cur = g.mysql_db.cursor()
 
-        cur.execute(
-            "select * from users where username = %s and password = %s", (self.username, self.password))
+        result = cur.execute("SELECT * FROM users WHERE username = %s", [self.username])
 
-        rows = cur.fetchall()
-
-        if rows != ():
-            valid = True
+        if result > 0:
+            data = cur.fetchone()
+            password = data['password']
+            
+            valid = sha256_crypt.verify(self.password, password)
 
         return valid
 
@@ -31,6 +33,6 @@ class User():
         cur = g.mysql_db.cursor()
 
         cur.execute("INSERT INTO users(username, password, email, phone) VALUES(%s, %s, %s, %s)",
-                    (self.username, self.password, self.email, self.phone))
+                    (self.username, sha256_crypt.encrypt(self.password), self.email, self.phone))
 
         g.mysql_db.commit()           
